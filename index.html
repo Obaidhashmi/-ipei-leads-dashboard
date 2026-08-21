@@ -35,7 +35,7 @@
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 
 <script type="text/babel" data-presets="react">
-const { useState, useMemo, useEffect } = React;
+const { useState, useMemo, useEffect, useRef } = React;
 
 // ---- Supabase config ----
 const SUPABASE_URL = "https://hpcujmxctvmwqkjyvtix.supabase.co";
@@ -207,6 +207,7 @@ function IPEILeadsDashboard() {
   const [now, setNow] = useState(new Date());
   const [showDetail, setShowDetail] = useState(true);
   const [draft, setDraft] = useState("");
+  const chatScrollRef = useRef(null);
 
   const loadLeads = async () => {
     try {
@@ -238,6 +239,13 @@ function IPEILeadsDashboard() {
     const t = setInterval(() => setNow(new Date()), 1000 * 30);
     return () => clearInterval(t);
   }, []);
+
+  const selectedForScroll = leads.find((l) => l.id === selectedId);
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [selectedId, selectedForScroll?.messages?.length]);
 
   const filtered = useMemo(() => {
     return leads.filter((l) => {
@@ -560,7 +568,7 @@ function IPEILeadsDashboard() {
                 </button>
               </div>
 
-              <div className="scrollbar" style={{ flex: 1, overflowY: "auto", padding: "18px 20px", display: "flex", flexDirection: "column", gap: 3 }}>
+              <div ref={chatScrollRef} className="scrollbar" style={{ flex: 1, overflowY: "auto", padding: "18px 20px", display: "flex", flexDirection: "column", gap: 3 }}>
                 {selected.messages.map((m, i) => (
                   <ChatBubble key={i} msg={m} />
                 ))}
